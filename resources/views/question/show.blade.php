@@ -2,23 +2,22 @@
 
 @section('content')
     <div class="container">
-        <form action="{{route('save_answer', ['id' => $question->id])}}" method="post">
+        <form id="quiz" action="" method="post">
             @csrf
         <h2>{{$question->question}}</h2>
         <p>
             @foreach ($question->answers as $answer)
             <p>
             @if ($answer->type == 1)
-                <label for="answer_{{$answer->id}}">
-                <input id="answer_{{$answer->id}}" name="question_{{$question->id}}[]" type="checkbox">{{$answer->answer}}</input>
+                    <input name="choice" type="checkbox" value="{{$answer->id}}"/>{{$answer->answer}}
             @elseif ($answer->type == 2)
-                <label for="answer_{{$answer->id}}">
-                <input id="answer_{{$answer->id}}" name="question[][{{$answer->id}}]" type="radio">{{$answer->answer}}</input>
+                    <input name="choice" type="radio" value="{{$answer->id}}"/>{{$answer->answer}}
             @endif
+                <input type="hidden"  value="{{$question->id}}"/>
             </p>
             @endforeach
         </p>
-            <input type="submit" value="Send answers"/>
+            <input type="submit" id="send" value="Send answers"/>
         </form>
     </div>
 @endsection

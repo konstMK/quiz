@@ -17,6 +17,7 @@ class CreateQuestionStatsTable extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('user_id');
             $table->bigInteger('question_id');
+            $table->bigInteger('answer_id');
             $table->integer('score');
         });
     }
