@@ -2,24 +2,26 @@ $( document ).ready(function() {
     console.log('test');
     $("#send").click(
         function(){
-            sendAjaxForm('result_form', 'ajax_form', '1');
+            sendAjaxForm();
             return false;
         }
     );
 });
 
-function sendAjaxForm(result_form, ajax_form, url) {
+function sendAjaxForm() {
     $.ajax({
-        url:     url, //url страницы (action_ajax_form.php)
+        url:     '/check-answer',
         type:     "POST", //метод отправки
-        dataType: "html", //формат данных
-        data: $("#"+ajax_form).serialize(),  // Сеарилизуем объект
-        success: function(response) { //Данные отправлены успешно
-            result = $.parseJSON(response);
-            $('#result_form').html('Имя: '+result.name+'<br>Телефон: '+result.phonenumber);
+        dataType: "json", //формат данных
+        data: $("#quiz").serialize(),  // Сеарилизуем объект
+        success: function(response) {
+            let answerId = '#answer_' + response.answer_id;
+            if (response.status == 'success') {
+                $('#answer_'+response.answer_id).css("background-color", "#B6F4D4");
+            } else {
+                $('#answer_'+response.answer_id).css("background-color", "#F4B6CA");
+                $('#answer_'+response.correct_answer).css("background-color", "#B6F4D4");
+            }
         },
-        error: function(response) { // Данные не отправлены
-            $('#result_form').html('Ошибка. Данные не отправлены.');
-        }
     });
 }

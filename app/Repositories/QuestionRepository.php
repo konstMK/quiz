@@ -29,7 +29,7 @@ class QuestionRepository implements QuestionRepositoryInterface
             return null;
         }
 
-        return $question->with('answers')->first();
+        return $question;
     }
 
     /**

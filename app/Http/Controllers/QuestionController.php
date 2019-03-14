@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Answer;
+use App\QuestionStat;
 use App\Services\QuestionServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
@@ -35,26 +38,35 @@ class QuestionController extends Controller
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store($id, Request $request)
+    public function checkAnswer(Request $request)
     {
         $userId = Auth::user()->id;
-        $answer = $request->get('question')[0];
-        $key = array_keys($answer)[0];
-        if ($answer[$key] == 'on') {
-            echo 'true answerr';
-        } else {
-            echo 'bad';
-        }
 
-        $question = $this->questionService->getQuestionById($id);
-        $answer = $question->answers->where('id', '=', $key);
-        dd($answer);
+        $questionId = $request->get('question_id');
+        /** @var Collection $quizObject */
+        $answerCollection = $this->questionService->getQuestionById($questionId)->answers;
+
+        $answerId = $request->get('choice');
+        $answer = $answerCollection->where('id', '=', $answerId)->first();
+        if ($answer->score > 0) {
+            QuestionStat::create([
+                'score' => $answer->score,
+                'user_id' => $userId,
+                'question_id' => $questionId,
+                'answer_id' => $answerId
+            ]);
+            return response()->json([
+                'status' => 'success',
+                'answer_id' => $answerId
+            ]);
+        } else {
+            $correctAnswer = $answerCollection->where('score', '>', 0)->first();
+            return response()->json([
+                'status' => 'error',
+                'answer_id' => $answerId,
+                'correct_answer' => $correctAnswer->id
+            ]);
+        }
     }
 
     /**
@@ -66,7 +78,21 @@ class QuestionController extends Controller
     public function show($id)
     {
         $question = $this->questionService->getQuestionById($id);
-        return view('question.show', ['question' => $question]);
+        $answers = Answer::where('question_id', '=', $id)->get();
+        return view('question.show', ['question' => $question, 'answers' => $answers]);
+
+    }
+
+    public function getStat()
+    {
+        $userId = Auth::id();
+        /** @var Collection $stat */
+        $stat = QuestionStat::where('user_id', '=', $userId)->get();
+
+        $totalScore = 0;
+        $stat->each(function($value) use (&$totalScore) {
+            $totalScore = $totalScore + $value->score;
+        });
 
     }
 
